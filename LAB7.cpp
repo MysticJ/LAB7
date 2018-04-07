@@ -39,13 +39,21 @@ int main() {
 	cout<<"So remember to press something even if you don't want to move!"<<endl;
 	cout<<"Now, let's start the game!\n"<<endl;
 	srand(time(NULL));
-	int map[11][31], duration=60;
-	InitMap(map);
+	int map[11][31], duration=30;
 	Minion Stewart={"Stewart", 0, 0, 15, '@'}, Bob={"Bob", 0, 0, 15, '#'}, Harry={"Harry", 0, 0, 15, '$'};
 	int step=2;
+	InitMap(map);
 	OnePlayer(map, step, Stewart, duration);
+	cout<<"Now let's start the game of next player!"<<endl;
+	InitMap(map);
 	OnePlayer(map, step, Bob, duration);
+	cout<<"Now let's start the game of next player!"<<endl;
+	InitMap(map);
 	OnePlayer(map, step, Harry, duration);
+	cout<<"All of you have finished the game!!! Let's check the result!"<<endl;
+	cout<<Stewart.name<<" has collected "<<Stewart.Bananas<<" bananas."<<endl;
+	cout<<Bob.name<<" has collected "<<Bob.Bananas<<" bananas."<<endl;
+	cout<<Harry.name<<" has collected "<<Harry.Bananas<<" bananas."<<endl;
 	return 0;
 }
 
@@ -64,24 +72,27 @@ void OnePlayer(int map[][31], int step, Minion& x, int duration){
 	cout<<x.name<<"! It's your turn!"<<"Are you ready?!"<<endl;
 	cout<<"Please enter \'r\' when you are ready!"<<endl;
 	cin>>S;
-	if (S=='r'){
-		cout<<"Let's start!"<<endl<<flush;
-		time_t start=time(nullptr);
-		while (time(nullptr)-start<duration){
-			boom = OneMove(map, step, x, start, duration);
-			if (boom==true){
-				cout<<"You loose all your bananas!"<<endl;
-				break;
-			}
+	while (S!='r'){
+		cout<<"Don't want to play the game?"<<endl;
+		cout<<"How do you know it's boring before trying it?"<<endl;
+		cout<<"Come on, just enter \'r\'!"<<endl;
+		cin>>S;
+	}
+	cout<<"Let's start!"<<endl<<flush;
+	time_t start=time(nullptr);
+	while (time(nullptr)-start<duration){
+		boom = OneMove(map, step, x, start, duration);
+		if (boom==true){
+			cout<<"You loose all your bananas!"<<endl;
+			break;
 		}
 	}
 	if (boom==false){
 		cout<<"Time's up!"<<endl;
-		cout<<"You have encountered "<<x.Bombs<<"times of bombs!"<<endl;
+		cout<<"You have encountered "<<x.Bombs<<" times of bombs!"<<endl;
 		cout<<"You have collected "<<x.Bananas<<" bananas in total!"<<endl;
 		cout<<"\n\n\n";
 	}
-	cout<<"Now let's start the game of next player!"<<endl;
 }
 
 bool OneMove(int map[][31], int step, Minion& x, time_t start, int duration){
@@ -100,9 +111,22 @@ bool OneMove(int map[][31], int step, Minion& x, time_t start, int duration){
 		}
 	}
 	// creating new banana or new bomb
-	int col = rand()%31;
-	int bomb=rand()%8;
-	map[0][col]=(bomb<6)?1:2;
+	int col1 = rand()%31, col2=rand()%31;
+	int bomb1=rand()%8, bomb2=rand()%8;
+	map[0][col1]=(bomb1<6)?1:2;
+	while (col1==col2){ col2=rand()%31;}
+	map[0][col2]=(bomb2<6)?1:2;
+	// check if bananas are attained
+	if (map[10][x.col]==1){
+		x.Bananas=x.Bananas+1;
+	}
+	else if (map[10][x.col]==2){
+		x.Bananas=x.Bananas-2;
+		x.Bombs=x.Bombs+1;
+		if (x.Bananas<0){
+			return true;
+		}
+	}
 	Display(map, x, start, duration);
 	// move the player
 	char direction;
@@ -143,6 +167,7 @@ void Display(int map[][31], Minion& x, time_t start, int duration){
 	}
 	for (int k=0; k<30; k++){
 		if ((x.col==k)&&(map[10][k]==1)) {cout<<"*|";}
+		else if ((x.col==k)&&(map[10][k]==2)) {cout<<"!|";}
 		else if ((x.col==k)&&(map[10][k]==0)) {cout<<x.symbol<<"|";}
 		else {
 			if (map[10][k]==0) {cout<<" |";}
@@ -150,6 +175,7 @@ void Display(int map[][31], Minion& x, time_t start, int duration){
 		}
 	}
 	if ((x.col==30)&&(map[10][30]==1)) {cout<<"*";}
+	else if ((x.col==30)&&(map[10][30]==2)) {cout<<"!";}
 	else if ((x.col==30)&&(map[10][30]==0)) {cout<<x.symbol;}
 	else {
 		if (map[10][30]==0) {cout<<" ";}
